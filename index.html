@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brice Roux | Formations & Conseil en Biologie Moléculaire</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Three.js & GLTFLoader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- Embedded 3D data bundle to ensure zero CORS failure even on file:/// protocol -->
+    <script src="assets/dna_data.js"></script>
+    <style>
+        body {
+            background-color: #030712;
+            overflow-x: hidden;
+        }
+        #webgl-canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .content-layer {
+            position: relative;
+            z-index: 10;
+        }
+        .text-glow {
+            text-shadow: 0 2px 12px rgba(3, 7, 18, 0.95), 0 0 4px rgba(3, 7, 18, 0.9);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e3a8a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body class="text-slate-100 font-sans antialiased selection:bg-blue-600 selection:text-white">
+
+    <!-- Fixed 3D Three.js Background Canvas -->
+    <div id="webgl-canvas-container"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-gray-950/80 backdrop-blur-md border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="#" class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-dna text-blue-400"></i> Brice Roux Formations
+            </a>
+            <div class="hidden md:flex items-center gap-8 font-medium text-slate-300">
+                <a href="#about" class="hover:text-blue-400 transition">À propos</a>
+                <a href="#skills" class="hover:text-blue-400 transition">Compétences</a>
+                <a href="#expertise" class="hover:text-blue-400 transition">Expertises</a>
+                <a href="#actualites" class="hover:text-blue-400 transition">Projet 2027</a>
+                <a href="#contact" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-full transition shadow-md shadow-blue-900/30">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Layer -->
+    <div class="content-layer">
+
+        <!-- Hero Section -->
+        <header class="pt-36 pb-24 md:pt-48 md:pb-40 px-6">
+            <div class="max-w-7xl mx-auto grid md:grid-cols-12 gap-8 items-center">
+                <!-- Left Hero Content -->
+                <div class="md:col-span-7">
+                    <span class="inline-flex items-center gap-2 bg-blue-950/80 text-blue-300 text-xs md:text-sm font-semibold px-4 py-2 rounded-full mb-6 border border-blue-800/60 shadow-inner">
+                        <i class="fa-solid fa-certificate text-blue-400"></i> PhD • Formateur & Consultant Indépendant
+                    </span>
+                    <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight text-white">
+                        Formations de pointe en <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-200">Biologie Moléculaire</span>
+                    </h1>
+                    <p class="text-lg md:text-xl text-slate-300 mb-8 max-w-2xl leading-relaxed">
+                        Accompagnement opérationnel et formations sur-mesure pour laboratoires de recherche, R&D, plateformes technologiques, LBM et CROs. Ancrées dans la réalité de terrain.
+                    </p>
+
+                    <!-- Key Highlights in Hero -->
+                    <div class="grid sm:grid-cols-3 gap-4 mb-10">
+                        <div class="bg-slate-900/70 border border-slate-800/80 p-4 rounded-xl">
+                            <i class="fa-solid fa-microscope text-blue-400 text-xl mb-2 block"></i>
+                            <div class="text-sm font-semibold text-white">Directement applicable</div>
+                            <div class="text-xs text-slate-400 mt-1">Pratique réelle en paillasse</div>
+                        </div>
+                        <div class="bg-slate-900/70 border border-slate-800/80 p-4 rounded-xl">
+                            <i class="fa-solid fa-chart-pie text-cyan-400 text-xl mb-2 block"></i>
+                            <div class="text-sm font-semibold text-white">Expertise dPCR & qPCR</div>
+                            <div class="text-xs text-slate-400 mt-1">Quantification absolue de pointe</div>
+                        </div>
+                        <div class="bg-slate-900/70 border border-slate-800/80 p-4 rounded-xl">
+                            <i class="fa-solid fa-location-dot text-blue-400 text-xl mb-2 block"></i>
+                            <div class="text-sm font-semibold text-white">Toute la France</div>
+                            <div class="text-xs text-slate-400 mt-1">Interventions sur site & TP</div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-4">
+                        <a href="#contact" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-8 py-3.5 rounded-full transition shadow-lg shadow-blue-900/40 flex items-center gap-2">
+                            <i class="fa-solid fa-envelope"></i> Discuter de votre projet
+                        </a>
+                        <a href="https://www.linkedin.com/in/brice-roux-formations/" target="_blank" class="bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-white font-medium px-8 py-3.5 rounded-full transition flex items-center gap-2">
+                            <i class="fa-brands fa-linkedin text-blue-400"></i> Profil LinkedIn
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right Hero Area (Intentionally open and unobstructed for 3D DNA Double Helix) -->
+                <div class="md:col-span-5 flex flex-col items-center md:items-end justify-center min-h-[300px]">
+                    <div class="inline-flex items-center gap-3 bg-slate-900/60 border border-slate-700/60 backdrop-blur-md px-5 py-2.5 rounded-2xl text-xs text-slate-300 shadow-xl">
+                        <i class="fa-solid fa-arrows-spin text-blue-400 text-base animate-spin" style="animation-duration: 4s;"></i>
+                        <span>ADN 3D interactif (tourne avec le défilement)</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- About Section -->
+        <section id="about" class="py-24 px-6 border-t border-slate-800/60">
+            <div class="max-w-7xl mx-auto">
+                <div class="max-w-3xl mx-auto text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4 text-glow">À propos de Brice Roux</h2>
+                    <div class="w-16 h-1 bg-blue-500 mx-auto rounded-full mb-6"></div>
+                    <p class="text-lg text-slate-200 leading-relaxed text-glow">
+                        Docteur (PhD) en biologie moléculaire et génétique diplômé de l'Université Paul Sabatier (Toulouse III). Formateur et consultant indépendant dédié à la transmission des meilleures pratiques expérimentales et analytiques.
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-slate-900/60 backdrop-blur-sm p-8 rounded-2xl border border-slate-800 hover:border-blue-500/50 transition shadow-xl">
+                        <div class="w-14 h-14 bg-blue-950 text-blue-400 rounded-xl flex items-center justify-center text-2xl mb-6 border border-blue-800/40">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-white">Rigueur Scientifique</h3>
+                        <p class="text-slate-300 leading-relaxed">Doctorat et solide background de recherche académique et appliquée en biologie moléculaire.</p>
+                    </div>
+                    <div class="bg-slate-900/60 backdrop-blur-sm p-8 rounded-2xl border border-slate-800 hover:border-blue-500/50 transition shadow-xl">
+                        <div class="w-14 h-14 bg-blue-950 text-blue-400 rounded-xl flex items-center justify-center text-2xl mb-6 border border-blue-800/40">
+                            <i class="fa-solid fa-flask-vial"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-white">Réalité de Terrain</h3>
+                        <p class="text-slate-300 leading-relaxed">Modules opérationnels axés sur la manipulation, l'optimisation des réactifs et la résolution d'anomalies.</p>
+                    </div>
+                    <div class="bg-slate-900/60 backdrop-blur-sm p-8 rounded-2xl border border-slate-800 hover:border-blue-500/50 transition shadow-xl">
+                        <div class="w-14 h-14 bg-blue-950 text-blue-400 rounded-xl flex items-center justify-center text-2xl mb-6 border border-blue-800/40">
+                            <i class="fa-solid fa-sliders"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-white">Sur-Mesure</h3>
+                        <p class="text-slate-300 leading-relaxed">Programmes flexibles conçus pour répondre aux contraintes et équipements spécifiques de chaque structure.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section with Icons (From LinkedIn Profile) -->
+        <section id="skills" class="py-24 px-6 border-t border-slate-800/60">
+            <div class="max-w-7xl mx-auto">
+                <div class="max-w-3xl mx-auto text-center mb-16">
+                    <span class="text-blue-400 text-sm font-semibold uppercase tracking-wider text-glow">Savoir-faire & Techniques</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mt-2 mb-4 text-glow">Compétences Clés</h2>
+                    <div class="w-16 h-1 bg-blue-500 mx-auto rounded-full mb-6"></div>
+                    <p class="text-lg text-slate-200 text-glow">
+                        Ensemble des compétences scientifiques, analytiques et pédagogiques mobilisées lors des formations et missions de conseil.
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Skill 1 -->
+                    <div class="bg-slate-900/65 backdrop-blur-sm p-6 rounded-2xl border border-slate-800 hover:border-blue-500/60 transition group shadow-lg">
+                        <div class="w-12 h-12 bg-blue-900/40 text-blue-400 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
+                            <i class="fa-solid fa-dna"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">PCR Digitale (dPCR / ddPCR)</h3>
+                        <p class="text-sm text-slate-400">Quantification absolue sans courbe étalon, partitionnement, détection de variants rares et biomarqueurs.</p>
+                    </div>
+
+                    <!-- Skill 2 -->
+                    <div class="bg-slate-900/65 backdrop-blur-sm p-6 rounded-2xl border border-slate-800 hover:border-blue-500/60 transition group shadow-lg">
+                        <div class="w-12 h-12 bg-blue-900/40 text-blue-400 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">PCR Quantitative (qPCR / RT-qPCR)</h3>
+                        <p class="text-sm text-slate-400">Analyse d'expression génique, sélection de gènes de référence, validation d'efficacité des amorces et sondes.</p>
+                    </div>
+
+                    <!-- Skill 3 -->
+                    <div class="bg-slate-900/65 backdrop-blur-sm p-6 rounded-2xl border border-slate-800 hover:border-blue-500/60 transition group shadow-lg">
+                        <div class="w-12 h-12 bg-blue-900/40 text-blue-400 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
+                            <i class="fa-solid fa-code-branch"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Séquençage & Génomique</h3>
+                        <p class="text-sm text-slate-400">Préparation de banques NGS, séquençage Sanger, contrôle qualité des acides nucléiques (ADN / ARN).</p>
+                    </div>
+
+                    <!-- Skill 4 -->
+                    <div class="bg-slate-900/65 backdrop-blur-sm p-6 rounded-2xl border border-slate-800 hover:border-blue-500/60 transition group shadow-lg">
+                        <div class="w-12 h-12 bg-blue-900/40 text-blue-400 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
+                            <i class="fa-solid fa-vial-circle-check"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Clonage & Génie Génétique</h3>
+                        <p class="text-sm text-slate-400">Stratégies d'assemblage moléculaire, mutagenèse dirigée, vecteurs d'expression et recombinaison.</p>
+                    </div>
+
+                    <!-- Skill 5 -->
+                    <div class="bg-slate-900/65 backdrop-blur-sm p-6 rounded-2xl border border-slate-800 hover:border-blue-500/60 transition group shadow-lg">
+                        <div class="w-12 h-12 bg-blue-900/40 text-blue-400 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Validation de Méthodes</h3>
+                        <p class="text-sm text-slate-400">Assurance qualité, robustesse analytique, respect des normes ISO / BPL et conformité réglementaire.</p>
+                    </div>
+
+                    <!-- Skill 6 -->
+                    <div class="bg-slate-900/65 backdrop-blur-sm p-6 rounded-2xl border border-slate-800 hover:border-blue-500/60 transition group shadow-lg">
+                        <div class="w-12 h-12 bg-blue-900/40 text-blue-400 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
+                            <i class="fa-solid fa-wrench"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Troubleshooting Laboratoire</h3>
+                        <p class="text-sm text-slate-400">Identification des biais expérimentaux, résolution des faux-positifs / faux-négatifs et inhibition PCR.</p>
+                    </div>
+
+                    <!-- Skill 7 -->
+                    <div class="bg-slate-900/65 backdrop-blur-sm p-6 rounded-2xl border border-slate-800 hover:border-blue-500/60 transition group shadow-lg">
+                        <div class="w-12 h-12 bg-blue-900/40 text-blue-400 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Ingénierie Pédagogique</h3>
+                        <p class="text-sm text-slate-400">Création de supports didactiques, animation de sessions théoriques et ateliers pratiques intensifs.</p>
+                    </div>
+
+                    <!-- Skill 8 -->
+                    <div class="bg-slate-900/65 backdrop-blur-sm p-6 rounded-2xl border border-slate-800 hover:border-blue-500/60 transition group shadow-lg">
+                        <div class="w-12 h-12 bg-blue-900/40 text-blue-400 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
+                            <i class="fa-solid fa-users-gear"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Accompagnement d'Équipes</h3>
+                        <p class="text-sm text-slate-400">Montée en compétences des chercheurs, techniciens et encadrants de plateformes et LBM.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Expertise Section -->
+        <section id="expertise" class="py-24 px-6 border-t border-slate-800/60">
+            <div class="max-w-7xl mx-auto">
+                <div class="max-w-3xl mx-auto text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Domaines d'Intervention</h2>
+                    <div class="w-16 h-1 bg-blue-500 mx-auto rounded-full mb-6"></div>
+                    <p class="text-lg text-slate-300">Des prestations complètes de la formation continue au conseil technique spécialisé.</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-slate-900/65 backdrop-blur-sm p-8 rounded-2xl border border-slate-800 shadow-xl">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-2xl shadow-lg">
+                                <i class="fa-solid fa-microchip"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">Formations PCR Digitale (dPCR)</h3>
+                                <p class="text-blue-400 font-medium">Théorie & Pratique</p>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 leading-relaxed mb-4">
+                            Maîtrise complète de la dPCR : design d'amorces et sondes, optimisation du partitionnement, analyse statistique Poisson et quantification absolue d'acides nucléiques.
+                        </p>
+                        <ul class="space-y-2 text-sm text-slate-400">
+                            <li><i class="fa-solid fa-arrow-right text-blue-500 mr-2"></i>Interprétation des profils 1D et 2D de fluorescence</li>
+                            <li><i class="fa-solid fa-arrow-right text-blue-500 mr-2"></i>Contrôles de qualité et seuillage (thresholding)</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-900/65 backdrop-blur-sm p-8 rounded-2xl border border-slate-800 shadow-xl">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-2xl shadow-lg">
+                                <i class="fa-solid fa-handshake-angle"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">Conseil & Audit de Protocoles</h3>
+                                <p class="text-blue-400 font-medium">Pour Laboratoires & Plateformes</p>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 leading-relaxed mb-4">
+                            Audit des flux de travail en biologie moléculaire, optimisation des rendements d'extraction et réduction des coûts de réactifs en routine.
+                        </p>
+                        <ul class="space-y-2 text-sm text-slate-400">
+                            <li><i class="fa-solid fa-arrow-right text-blue-500 mr-2"></i>Diagnostics des causes d'échec expérimental</li>
+                            <li><i class="fa-solid fa-arrow-right text-blue-500 mr-2"></i>Mise en place de bonnes pratiques de laboratoire</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Actualités & Projets 2027 -->
+        <section id="actualites" class="py-24 px-6 border-t border-slate-800/60">
+            <div class="max-w-7xl mx-auto">
+                <div class="bg-gradient-to-r from-blue-950/80 to-indigo-950/80 backdrop-blur-sm text-white rounded-3xl p-8 md:p-12 shadow-2xl border border-blue-600/40 relative overflow-hidden">
+                    <div class="max-w-3xl relative z-10">
+                        <span class="bg-blue-600 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4 inline-block">
+                            Appel à Partenariat 2027
+                        </span>
+                        <h2 class="text-3xl md:text-4xl font-bold mb-6">Journées de Travaux Pratiques — PCR Digitale</h2>
+                        <p class="text-blue-100 text-lg leading-relaxed mb-6">
+                            Recherche de centres, plateformes, laboratoires ou prestataires en <strong>région parisienne</strong> susceptibles d'accueillir des journées de travaux pratiques consacrées à la <strong>PCR digitale</strong> en 2027, dans le cadre de formations continues en biologie moléculaire.
+                        </p>
+                        <p class="text-slate-300 text-sm mb-8">
+                            Prestation comprenant la mise à disposition de locaux, d'instruments et de réactifs (modalités sur-mesure).
+                        </p>
+                        <a href="#contact" class="inline-block bg-white text-blue-950 font-semibold px-8 py-3.5 rounded-full hover:bg-blue-50 transition shadow-lg">
+                            Proposer un partenariat
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-24 px-6 border-t border-slate-800/60 text-center">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Contactez Brice Roux</h2>
+                <div class="w-16 h-1 bg-blue-500 mx-auto rounded-full mb-6"></div>
+                <p class="text-lg text-slate-300 mb-10">
+                    Vous pilotez un laboratoire, une plateforme technologique ou une équipe R&D ? Échangeons sur vos besoins.
+                </p>
+                <div class="flex flex-wrap justify-center gap-6">
+                    <a href="https://www.linkedin.com/in/brice-roux-formations/" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-8 py-4 rounded-2xl transition shadow-lg shadow-blue-900/50 flex items-center gap-3 text-lg">
+                        <i class="fa-brands fa-linkedin text-2xl"></i> Contacter sur LinkedIn
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-950 text-slate-400 py-12 border-t border-slate-900">
+            <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+                <p class="text-sm">© 2026 Brice Roux Formations. Tous droits réservés.</p>
+                <div class="flex items-center gap-6 text-lg">
+                    <a href="https://www.linkedin.com/in/brice-roux-formations/" target="_blank" class="hover:text-blue-400 transition"><i class="fa-brands fa-linkedin"></i></a>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- High-Performance Three.js Background Script -->
+    <script>
+        (function() {
+            let scene, camera, renderer, pivotGroup, dnaModel;
+            let targetScrollY = 0;
+            let currentScrollY = 0;
+
+            function init() {
+                const container = document.getElementById('webgl-canvas-container');
+                if (!container) return;
+
+                // 1. Scene & Camera
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+                camera.position.set(0, 0, 10);
+
+                // 2. High Performance Renderer with crisp alpha
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+                container.appendChild(renderer.domElement);
+
+                // 3. Bright Studio Biological Lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 3.0);
+                scene.add(ambientLight);
+
+                const keyLight = new THREE.DirectionalLight(0xffffff, 4.0);
+                keyLight.position.set(10, 10, 10);
+                scene.add(keyLight);
+
+                const fillLight = new THREE.DirectionalLight(0x38bdf8, 3.0);
+                fillLight.position.set(-10, -10, -10);
+                scene.add(fillLight);
+
+                const pointLight = new THREE.PointLight(0x60a5fa, 2.5, 25);
+                pointLight.position.set(0, 0, 5);
+                scene.add(pointLight);
+
+                // 4. Pivot Group for Perfect Center Alignment
+                pivotGroup = new THREE.Group();
+                scene.add(pivotGroup);
+
+                // 5. Model Setup Function
+                function setupModel(gltfScene) {
+                    dnaModel = gltfScene;
+
+                    // Ensure materials pop with vivid colors
+                    dnaModel.traverse(function(child) {
+                        if (child.isMesh && child.material) {
+                            child.material.metalness = 0.1;
+                            child.material.roughness = 0.3;
+                            child.material.needsUpdate = true;
+                        }
+                    });
+
+                    // Accurate Bounding Box Calculation
+                    const box = new THREE.Box3().setFromObject(dnaModel);
+                    const center = new THREE.Vector3();
+                    box.getCenter(center);
+                    const size = new THREE.Vector3();
+                    box.getSize(size);
+
+                    // Center model on pivot origin
+                    dnaModel.position.set(-center.x, -center.y, -center.z);
+                    pivotGroup.add(dnaModel);
+
+                    // Scale Pivot to fill background nicely
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 5.2 / maxDim;
+                    pivotGroup.scale.set(scale, scale, scale);
+
+                    // Position pivot
+                    updatePivotPosition();
+                }
+
+                // 6. Loading Strategy: Support both embedded base64 (file:// without CORS) and URL fetch (http://)
+                const loader = new THREE.GLTFLoader();
+                if (window.DNA_GLB_BASE64) {
+                    try {
+                        const bin = atob(window.DNA_GLB_BASE64);
+                        const len = bin.length;
+                        const bytes = new Uint8Array(len);
+                        for (let i = 0; i < len; i++) {
+                            bytes[i] = bin.charCodeAt(i);
+                        }
+                        loader.parse(bytes.buffer, '', function(gltf) {
+                            setupModel(gltf.scene);
+                        }, function(err) {
+                            console.error('Error parsing 3D model:', err);
+                        });
+                    } catch (e) {
+                        console.error('Error decoding base64 3D data:', e);
+                    }
+                } else {
+                    loader.load('assets/dna.glb', function(gltf) {
+                        setupModel(gltf.scene);
+                    }, undefined, function(err) {
+                        console.error('Error loading assets/dna.glb:', err);
+                    });
+                }
+
+                window.addEventListener('resize', onWindowResize, { passive: true });
+                window.addEventListener('scroll', onScroll, { passive: true });
+
+                requestAnimationFrame(animate);
+            }
+
+            function updatePivotPosition() {
+                if (!pivotGroup) return;
+                // Center on mobile, offset right on desktop so it sits right next to hero text
+                if (window.innerWidth < 768) {
+                    pivotGroup.position.set(0, -0.5, 0);
+                } else {
+                    pivotGroup.position.set(2.4, 0.2, 0);
+                }
+            }
+
+            function onScroll() {
+                targetScrollY = window.scrollY;
+            }
+
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                updatePivotPosition();
+            }
+
+            let lastTime = performance.now();
+            function animate(now) {
+                requestAnimationFrame(animate);
+
+                const delta = Math.min((now - lastTime) * 0.001, 0.1);
+                lastTime = now;
+
+                if (pivotGroup) {
+                    // Smooth scroll lerp (no stutter)
+                    currentScrollY += (targetScrollY - currentScrollY) * 0.08;
+
+                    // Continuous idle spin + scroll spin
+                    pivotGroup.rotation.y += delta * 0.4;
+                    pivotGroup.rotation.x = currentScrollY * 0.0018;
+                    pivotGroup.rotation.z = Math.sin(now * 0.0008) * 0.08;
+                }
+
+                renderer.render(scene, camera);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+</body>
+</html>
