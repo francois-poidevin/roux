@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brice Roux | Formations & Conseil en Biologie Moléculaire</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Three.js & GLTFLoader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- Embedded 3D data bundle -->
+    <script src="assets/dna_data.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        warm: {
+                            50: '#fcfbfa',
+                            100: '#f5f2eb',
+                            200: '#eae4d5',
+                            800: '#292524',
+                            900: '#1c1917',
+                            orange: '#f97316',
+                            coral: '#ea580c',
+                            amber: '#f59e0b',
+                            sage: '#059669',
+                            rose: '#e11d48'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #fcfbfa;
+            color: #1c1917;
+            overflow-x: hidden;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        #webgl-canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .content-layer {
+            position: relative;
+            z-index: 10;
+        }
+        /* Soft warm animated background blobs */
+        .ambient-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.35;
+            animation: floatBlob 16s ease-in-out infinite alternate;
+        }
+        .blob-1 {
+            width: 450px;
+            height: 450px;
+            background: #fde047;
+            top: -5%;
+            left: -5%;
+        }
+        .blob-2 {
+            width: 550px;
+            height: 550px;
+            background: #fed7aa;
+            bottom: 5%;
+            right: -5%;
+            animation-delay: -4s;
+        }
+        .blob-3 {
+            width: 400px;
+            height: 400px;
+            background: #a7f3d0;
+            top: 40%;
+            left: 25%;
+            animation-delay: -8s;
+        }
+        @keyframes floatBlob {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(35px, -45px) scale(1.1); }
+            100% { transform: translate(-25px, 35px) scale(0.95); }
+        }
+        .soft-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(234, 228, 213, 0.8);
+            box-shadow: 0 10px 30px -5px rgba(28, 25, 23, 0.05);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .soft-card:hover {
+            border-color: rgba(249, 115, 22, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -10px rgba(249, 115, 22, 0.12);
+        }
+        .soft-nav {
+            background: rgba(252, 251, 250, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(234, 228, 213, 0.8);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fcfbfa;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d4d4d8;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f97316;
+        }
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-orange-500 selection:text-white">
+
+    <!-- Warm Background Blobs -->
+    <div class="ambient-blob blob-1"></div>
+    <div class="ambient-blob blob-2"></div>
+    <div class="ambient-blob blob-3"></div>
+
+    <!-- Fixed Three.js Background Canvas -->
+    <div id="webgl-canvas-container"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 soft-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="#" class="text-lg md:text-xl font-extrabold text-stone-900 flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/25 group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-dna text-lg"></i>
+                </div>
+                <span>Brice Roux Formations</span>
+            </a>
+            <div class="hidden md:flex items-center gap-8 font-medium text-stone-600 text-sm">
+                <a href="#about" class="hover:text-orange-600 transition-colors">À propos</a>
+                <a href="#skills" class="hover:text-orange-600 transition-colors">Compétences</a>
+                <a href="#expertise" class="hover:text-orange-600 transition-colors">Expertises</a>
+                <a href="#actualites" class="hover:text-orange-600 transition-colors flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Projet 2027
+                </a>
+                <a href="#contact" class="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white px-6 py-2.5 rounded-full transition-all shadow-lg shadow-orange-600/20 font-semibold hover:-translate-y-0.5">Contact</a>
+            </div>
+            <!-- Mobile Menu Toggle -->
+            <button id="mobile-menu-btn" class="md:hidden text-stone-800 focus:outline-none p-2">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-[#fcfbfa]/95 border-b border-stone-200 px-6 py-6 space-y-4 backdrop-blur-2xl">
+            <a href="#about" class="block text-stone-700 hover:text-orange-600 font-medium py-1">À propos</a>
+            <a href="#skills" class="block text-stone-700 hover:text-orange-600 font-medium py-1">Compétences</a>
+            <a href="#expertise" class="block text-stone-700 hover:text-orange-600 font-medium py-1">Expertises</a>
+            <a href="#actualites" class="block text-stone-700 hover:text-orange-600 font-medium py-1">Projet 2027</a>
+            <a href="#contact" class="block text-center bg-orange-600 text-white py-3 rounded-2xl font-semibold shadow-lg shadow-orange-900/20 mt-2">Contact</a>
+        </div>
+    </nav>
+
+    <!-- Main Content Layer -->
+    <div class="content-layer">
+
+        <!-- Hero Section -->
+        <header class="min-h-screen pt-36 pb-20 md:pt-48 md:pb-32 px-6 flex items-center">
+            <div class="max-w-7xl mx-auto w-full grid md:grid-cols-12 gap-12 items-center">
+                <!-- Left Hero Content -->
+                <div class="md:col-span-7 space-y-8">
+                    <div class="inline-flex items-center gap-2.5 bg-orange-100/80 text-orange-800 text-xs md:text-sm font-semibold px-4 py-2 rounded-full border border-orange-200 shadow-sm">
+                        <i class="fa-solid fa-certificate text-orange-600"></i>
+                        <span>PhD • Formateur & Consultant Indépendant</span>
+                    </div>
+
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15] text-stone-900">
+                        Formations de pointe en <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-600 to-emerald-600">Biologie Moléculaire</span>
+                    </h1>
+
+                    <p class="text-lg md:text-xl text-stone-600 max-w-2xl leading-relaxed">
+                        Accompagnement opérationnel et formations sur-mesure pour laboratoires de recherche, R&D, plateformes technologiques, LBM et CROs. Ancrées dans la réalité de terrain.
+                    </p>
+
+                    <!-- Key Highlights Grid -->
+                    <div class="grid sm:grid-cols-3 gap-4 pt-2">
+                        <div class="soft-card p-4 rounded-2xl">
+                            <div class="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center text-lg mb-3 border border-orange-200">
+                                <i class="fa-solid fa-microscope"></i>
+                            </div>
+                            <div class="text-sm font-bold text-stone-900">Directement applicable</div>
+                            <div class="text-xs text-stone-500 mt-1">Pratique réelle en paillasse</div>
+                        </div>
+                        <div class="soft-card p-4 rounded-2xl">
+                            <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg mb-3 border border-amber-200">
+                                <i class="fa-solid fa-chart-pie"></i>
+                            </div>
+                            <div class="text-sm font-bold text-stone-900">Expertise dPCR & qPCR</div>
+                            <div class="text-xs text-stone-500 mt-1">Quantification absolue de pointe</div>
+                        </div>
+                        <div class="soft-card p-4 rounded-2xl">
+                            <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg mb-3 border border-emerald-200">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div class="text-sm font-bold text-stone-900">Toute la France</div>
+                            <div class="text-xs text-stone-500 mt-1">Interventions sur site & TP</div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-4 pt-4">
+                        <a href="#contact" class="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-semibold px-8 py-4 rounded-2xl transition-all shadow-xl shadow-orange-600/25 flex items-center gap-3 hover:-translate-y-0.5">
+                            <i class="fa-solid fa-envelope"></i> Discuter de votre projet
+                        </a>
+                        <a href="https://www.linkedin.com/in/brice-roux-formations/" target="_blank" class="soft-card hover:bg-stone-100 text-stone-800 font-semibold px-8 py-4 rounded-2xl transition-all flex items-center gap-3">
+                            <i class="fa-brands fa-linkedin text-orange-600 text-xl"></i> Profil LinkedIn
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right Hero Area (3D DNA Canvas) -->
+                <div class="md:col-span-5 flex items-center justify-center min-h-[400px]">
+                </div>
+            </div>
+        </header>
+
+        <!-- About Section -->
+        <section id="about" class="py-28 px-6 border-t border-stone-200 relative">
+            <div class="max-w-7xl mx-auto reveal">
+                <div class="max-w-3xl mx-auto text-center mb-20">
+                    <h2 class="text-3xl md:text-5xl font-extrabold text-stone-900 mb-4">À propos de Brice Roux</h2>
+                    <div class="w-20 h-1.5 bg-gradient-to-r from-orange-500 to-amber-500 mx-auto rounded-full mb-6"></div>
+                    <p class="text-lg md:text-xl text-stone-600 leading-relaxed">
+                        Docteur (PhD) en biologie moléculaire et génétique diplômé de l'Université Paul Sabatier (Toulouse III). Formateur et consultant indépendant dédié à la transmission des meilleures pratiques expérimentales et analytiques.
+                    </p>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="soft-card p-8 rounded-3xl relative overflow-hidden group">
+                        <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-lg shadow-orange-500/20">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-3 text-stone-900">Rigueur Scientifique</h3>
+                        <p class="text-stone-600 leading-relaxed">Doctorat et solide background de recherche académique et appliquée en biologie moléculaire.</p>
+                    </div>
+
+                    <div class="soft-card p-8 rounded-3xl relative overflow-hidden group">
+                        <div class="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-700 text-white rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-lg shadow-amber-500/20">
+                            <i class="fa-solid fa-flask-vial"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-3 text-stone-900">Réalité de Terrain</h3>
+                        <p class="text-stone-600 leading-relaxed">Modules opérationnels axés sur la manipulation, l'optimisation des réactifs et la résolution d'anomalies.</p>
+                    </div>
+
+                    <div class="soft-card p-8 rounded-3xl relative overflow-hidden group">
+                        <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-700 text-white rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-lg shadow-emerald-500/20">
+                            <i class="fa-solid fa-sliders"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-3 text-stone-900">Sur-Mesure</h3>
+                        <p class="text-stone-600 leading-relaxed">Programmes flexibles conçus pour répondre aux contraintes et équipements spécifiques de chaque structure.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="py-28 px-6 border-t border-stone-200 relative">
+            <div class="max-w-7xl mx-auto reveal">
+                <div class="max-w-3xl mx-auto text-center mb-20">
+                    <span class="text-amber-600 text-xs font-bold uppercase tracking-wider">Savoir-faire & Techniques</span>
+                    <h2 class="text-3xl md:text-5xl font-extrabold text-stone-900 mt-2 mb-4">Compétences Clés</h2>
+                    <div class="w-20 h-1.5 bg-gradient-to-r from-orange-500 to-amber-500 mx-auto rounded-full mb-6"></div>
+                    <p class="text-lg text-stone-600">
+                        Ensemble des compétences scientifiques, analytiques et pédagogiques mobilisées lors des formations et missions de conseil.
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Skill 1 -->
+                    <div class="soft-card p-8 rounded-3xl group">
+                        <div class="w-14 h-14 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center text-2xl mb-6 border border-orange-200 group-hover:bg-orange-600 group-hover:text-white transition-all shadow-sm">
+                            <i class="fa-solid fa-dna"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-stone-900 mb-2">PCR Digitale (dPCR / ddPCR)</h3>
+                        <p class="text-sm text-stone-600">Quantification absolue sans courbe étalon, partitionnement, détection de variants rares et biomarqueurs.</p>
+                    </div>
+
+                    <!-- Skill 2 -->
+                    <div class="soft-card p-8 rounded-3xl group">
+                        <div class="w-14 h-14 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center text-2xl mb-6 border border-orange-200 group-hover:bg-orange-600 group-hover:text-white transition-all shadow-sm">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-stone-900 mb-2">PCR Quantitative (qPCR / RT-qPCR)</h3>
+                        <p class="text-sm text-stone-600">Analyse d'expression génique, sélection de gènes de référence, validation d'efficacité des amorces et sondes.</p>
+                    </div>
+
+                    <!-- Skill 3 -->
+                    <div class="soft-card p-8 rounded-3xl group">
+                        <div class="w-14 h-14 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center text-2xl mb-6 border border-orange-200 group-hover:bg-orange-600 group-hover:text-white transition-all shadow-sm">
+                            <i class="fa-solid fa-code-branch"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-stone-900 mb-2">Séquençage & Génomique</h3>
+                        <p class="text-sm text-stone-600">Préparation de banques NGS, séquençage Sanger, contrôle qualité des acides nucléiques (ADN / ARN).</p>
+                    </div>
+
+                    <!-- Skill 4 -->
+                    <div class="soft-card p-8 rounded-3xl group">
+                        <div class="w-14 h-14 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center text-2xl mb-6 border border-orange-200 group-hover:bg-orange-600 group-hover:text-white transition-all shadow-sm">
+                            <i class="fa-solid fa-vial-circle-check"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-stone-900 mb-2">Clonage & Génie Génétique</h3>
+                        <p class="text-sm text-stone-600">Stratégies d'assemblage moléculaire, mutagenèse dirigée, vecteurs d'expression et recombinaison.</p>
+                    </div>
+
+                    <!-- Skill 5 -->
+                    <div class="soft-card p-8 rounded-3xl group">
+                        <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-6 border border-emerald-200 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-stone-900 mb-2">Validation de Méthodes</h3>
+                        <p class="text-sm text-stone-600">Assurance qualité, robustesse analytique, respect des normes ISO / BPL et conformité réglementaire.</p>
+                    </div>
+
+                    <!-- Skill 6 -->
+                    <div class="soft-card p-8 rounded-3xl group">
+                        <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-6 border border-emerald-200 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
+                            <i class="fa-solid fa-wrench"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-stone-900 mb-2">Troubleshooting Laboratoire</h3>
+                        <p class="text-sm text-stone-600">Identification des biais expérimentaux, résolution des faux-positifs / faux-négatifs et inhibition PCR.</p>
+                    </div>
+
+                    <!-- Skill 7 -->
+                    <div class="soft-card p-8 rounded-3xl group">
+                        <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mb-6 border border-amber-200 group-hover:bg-amber-600 group-hover:text-white transition-all shadow-sm">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-stone-900 mb-2">Ingénierie Pédagogique</h3>
+                        <p class="text-sm text-stone-600">Création de supports didactiques, animation de sessions théoriques et ateliers pratiques intensifs.</p>
+                    </div>
+
+                    <!-- Skill 8 -->
+                    <div class="soft-card p-8 rounded-3xl group">
+                        <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mb-6 border border-amber-200 group-hover:bg-amber-600 group-hover:text-white transition-all shadow-sm">
+                            <i class="fa-solid fa-users-gear"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-stone-900 mb-2">Accompagnement d'Équipes</h3>
+                        <p class="text-sm text-stone-600">Montée en compétences des chercheurs, techniciens et encadrants de plateformes et LBM.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Expertise Section -->
+        <section id="expertise" class="py-28 px-6 border-t border-stone-200 relative">
+            <div class="max-w-7xl mx-auto reveal">
+                <div class="max-w-3xl mx-auto text-center mb-20">
+                    <h2 class="text-3xl md:text-5xl font-extrabold text-stone-900 mb-4">Domaines d'Intervention</h2>
+                    <div class="w-20 h-1.5 bg-gradient-to-r from-orange-500 to-amber-500 mx-auto rounded-full mb-6"></div>
+                    <p class="text-lg text-stone-600">Des prestations complètes de la formation continue au conseil technique spécialisé.</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="soft-card p-10 rounded-3xl relative overflow-hidden">
+                        <div class="flex items-center gap-5 mb-8">
+                            <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-600 text-white rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-orange-500/20">
+                                <i class="fa-solid fa-microchip"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-stone-900">Formations PCR Digitale (dPCR)</h3>
+                                <p class="text-orange-600 font-semibold text-sm">Théorie & Pratique</p>
+                            </div>
+                        </div>
+                        <p class="text-stone-600 leading-relaxed mb-4">
+                            Maîtrise complète de la dPCR : design d'amorces et sondes, optimisation du partitionnement, analyse statistique Poisson et quantification absolue d'acides nucléiques.
+                        </p>
+                        <ul class="space-y-2 text-sm text-stone-600">
+                            <li><i class="fa-solid fa-arrow-right text-orange-600 mr-2"></i>Interprétation des profils 1D et 2D de fluorescence</li>
+                            <li><i class="fa-solid fa-arrow-right text-orange-600 mr-2"></i>Contrôles de qualité et seuillage (thresholding)</li>
+                        </ul>
+                    </div>
+
+                    <div class="soft-card p-10 rounded-3xl relative overflow-hidden">
+                        <div class="flex items-center gap-5 mb-8">
+                            <div class="w-16 h-16 bg-gradient-to-br from-amber-500 to-emerald-600 text-white rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-amber-500/20">
+                                <i class="fa-solid fa-handshake-angle"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-stone-900">Conseil & Audit de Protocoles</h3>
+                                <p class="text-amber-600 font-semibold text-sm">Pour Laboratoires & Plateformes</p>
+                            </div>
+                        </div>
+                        <p class="text-stone-600 leading-relaxed mb-4">
+                            Audit des flux de travail en biologie moléculaire, optimisation des rendements d'extraction et réduction des coûts de réactifs en routine.
+                        </p>
+                        <ul class="space-y-2 text-sm text-stone-600">
+                            <li><i class="fa-solid fa-arrow-right text-amber-600 mr-2"></i>Diagnostics des causes d'échec expérimental</li>
+                            <li><i class="fa-solid fa-arrow-right text-amber-600 mr-2"></i>Mise en place de bonnes pratiques de laboratoire</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Actualités & Projets 2027 -->
+        <section id="actualites" class="py-28 px-6 border-t border-stone-200 relative">
+            <div class="max-w-7xl mx-auto reveal">
+                <div class="bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-600 text-white rounded-[2.5rem] p-10 md:p-16 shadow-2xl relative overflow-hidden">
+                    <div class="max-w-3xl relative z-10 space-y-6">
+                        <span class="bg-white/20 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4 inline-block backdrop-blur-md">
+                            Appel à Partenariat 2027
+                        </span>
+                        <h2 class="text-3xl md:text-4xl font-bold mb-6">Journées de Travaux Pratiques — PCR Digitale</h2>
+                        <p class="text-orange-50 text-lg leading-relaxed mb-6">
+                            Recherche de centres, plateformes, laboratoires ou prestataires en <strong>région parisienne</strong> susceptibles d'accueillir des journées de travaux pratiques consacrées à la <strong>PCR digitale</strong> en 2027, dans le cadre de formations continues en biologie moléculaire.
+                        </p>
+                        <p class="text-orange-100 text-sm mb-8">
+                            Prestation comprenant la mise à disposition de locaux, d'instruments et de réactifs (modalités sur-mesure).
+                        </p>
+                        <a href="#contact" class="inline-block bg-stone-900 text-white font-semibold px-8 py-3.5 rounded-2xl hover:bg-stone-800 transition shadow-lg">
+                            Proposer un partenariat
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-28 px-6 border-t border-stone-200 text-center relative">
+            <div class="max-w-4xl mx-auto reveal">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-stone-900 mb-4">Contactez Brice Roux</h2>
+                <div class="w-20 h-1.5 bg-gradient-to-r from-orange-500 to-amber-500 mx-auto rounded-full mb-6"></div>
+                <p class="text-lg md:text-xl text-stone-600 mb-10">
+                    Vous pilotez un laboratoire, une plateforme technologique ou une équipe R&D ? Échangeons sur vos besoins.
+                </p>
+                <div class="flex flex-wrap justify-center gap-6">
+                    <a href="https://www.linkedin.com/in/brice-roux-formations/" target="_blank" class="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-medium px-8 py-4 rounded-2xl transition-all shadow-xl shadow-orange-600/25 flex items-center gap-3 text-lg hover:-translate-y-1">
+                        <i class="fa-brands fa-linkedin text-2xl"></i> Contacter sur LinkedIn
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-stone-900 text-stone-400 py-12 border-t border-stone-800">
+            <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+                <p class="text-sm">© 2026 Brice Roux Formations. Tous droits réservés.</p>
+                <div class="flex items-center gap-6 text-lg">
+                    <a href="https://www.linkedin.com/in/brice-roux-formations/" target="_blank" class="hover:text-orange-400 transition"><i class="fa-brands fa-linkedin"></i></a>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Script: Three.js Background & Scroll Animation Observer -->
+    <script>
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+            });
+        }
+
+        // Scroll Reveal Observer
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.15
+        };
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // Three.js 3D DNA Helix Background Renderer (Warm Studio Lighting)
+        (function() {
+            let scene, camera, renderer, pivotGroup, dnaModel;
+            let targetScrollY = 0;
+            let currentScrollY = 0;
+            let mouseX = 0;
+            let mouseY = 0;
+            let targetMouseX = 0;
+            let targetMouseY = 0;
+
+            function init() {
+                const container = document.getElementById('webgl-canvas-container');
+                if (!container) return;
+
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+                camera.position.set(0, 0, 10);
+
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                container.appendChild(renderer.domElement);
+
+                // Warm Studio Lighting
+                const ambientLight = new THREE.AmbientLight(0xfffbeb, 3.2);
+                scene.add(ambientLight);
+
+                const keyLight = new THREE.DirectionalLight(0xf97316, 4.2);
+                keyLight.position.set(10, 10, 10);
+                scene.add(keyLight);
+
+                const fillLight = new THREE.DirectionalLight(0x059669, 3.0);
+                fillLight.position.set(-10, -10, -10);
+                scene.add(fillLight);
+
+                const pointLight = new THREE.PointLight(0xf59e0b, 3.5, 30);
+                pointLight.position.set(0, 0, 6);
+                scene.add(pointLight);
+
+                pivotGroup = new THREE.Group();
+                scene.add(pivotGroup);
+
+                function setupModel(gltfScene) {
+                    dnaModel = gltfScene;
+
+                    dnaModel.traverse(function(child) {
+                        if (child.isMesh && child.material) {
+                            child.material.metalness = 0.1;
+                            child.material.roughness = 0.3;
+                            child.material.needsUpdate = true;
+                        }
+                    });
+
+                    const box = new THREE.Box3().setFromObject(dnaModel);
+                    const center = new THREE.Vector3();
+                    box.getCenter(center);
+                    const size = new THREE.Vector3();
+                    box.getSize(size);
+
+                    dnaModel.position.set(-center.x, -center.y, -center.z);
+                    pivotGroup.add(dnaModel);
+
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 5.4 / maxDim;
+                    pivotGroup.scale.set(scale, scale, scale);
+
+                    updatePivotPosition();
+                }
+
+                const loader = new THREE.GLTFLoader();
+                if (window.DNA_GLB_BASE64) {
+                    try {
+                        const bin = atob(window.DNA_GLB_BASE64);
+                        const len = bin.length;
+                        const bytes = new Uint8Array(len);
+                        for (let i = 0; i < len; i++) {
+                            bytes[i] = bin.charCodeAt(i);
+                        }
+                        loader.parse(bytes.buffer, '', function(gltf) {
+                            setupModel(gltf.scene);
+                        });
+                    } catch (e) {
+                        console.error('Base64 parse error:', e);
+                    }
+                } else {
+                    loader.load('assets/dna.glb', function(gltf) {
+                        setupModel(gltf.scene);
+                    });
+                }
+
+                window.addEventListener('resize', onWindowResize, { passive: true });
+                window.addEventListener('scroll', onScroll, { passive: true });
+                window.addEventListener('mousemove', onMouseMove, { passive: true });
+
+                requestAnimationFrame(animate);
+            }
+
+            function updatePivotPosition() {
+                if (!pivotGroup) return;
+                if (window.innerWidth < 768) {
+                    pivotGroup.position.set(0, -0.8, 0);
+                } else {
+                    pivotGroup.position.set(2.6, 0.1, 0);
+                }
+            }
+
+            function onScroll() { targetScrollY = window.scrollY; }
+            function onMouseMove(e) {
+                targetMouseX = (e.clientX / window.innerWidth) * 2 - 1;
+                targetMouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+            }
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                updatePivotPosition();
+            }
+
+            let lastTime = performance.now();
+            function animate(now) {
+                requestAnimationFrame(animate);
+                const delta = Math.min((now - lastTime) * 0.001, 0.1);
+                lastTime = now;
+
+                if (pivotGroup) {
+                    currentScrollY += (targetScrollY - currentScrollY) * 0.08;
+                    mouseX += (targetMouseX - mouseX) * 0.05;
+                    mouseY += (targetMouseY - mouseY) * 0.05;
+
+                    pivotGroup.rotation.y += delta * 0.35 + mouseX * 0.02;
+                    pivotGroup.rotation.x = currentScrollY * 0.0018 + mouseY * 0.02;
+                    pivotGroup.rotation.z = Math.sin(now * 0.0007) * 0.06;
+                }
+
+                renderer.render(scene, camera);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+</body>
+</html>
