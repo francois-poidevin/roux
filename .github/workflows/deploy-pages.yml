@@ -1,0 +1,59 @@
+name: Deploy Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: v3/package-lock.json
+
+      - name: Build v3 (React/Vite)
+        working-directory: v3
+        run: |
+          npm ci
+          npm run build
+
+      # Assemble the whole Pages site: root (index.html + assets/) and the
+      # static v1/v2 folders are published as-is; v3 is replaced by its
+      # built dist/ output. One artifact = one deploy = all four reachable
+      # from the same Pages site (root, /v1, /v2, /v3).
+      - name: Assemble site
+        run: |
+          mkdir -p _site
+          cp -r index.html assets README.md _site/
+          cp -r v1 _site/v1
+          cp -r v2 _site/v2
+          cp -r v3/dist _site/v3
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
