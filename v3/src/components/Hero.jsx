@@ -7,7 +7,7 @@ const iconMap = { Microscope, ChartPie, MapPin };
 export default function Hero() {
   return (
     <header
-      id="top"
+      id="hero"
       className="relative min-h-screen flex items-center pt-32 pb-20 px-6"
     >
       <div className="max-w-5xl mx-auto w-full">

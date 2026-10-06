@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>Brice Roux | Formations & Conseil en Biologie Moléculaire</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <style>
+        /* Palette: Figma "Woodland" (color scheme 4) */
+        :root {
+            --olive: #535134;
+            --chartreuse: #aad31d;
+            --grey: #9e9e9e;
+            --blush: #d3afa0;
+            --brown: #9f7561;
+            --paper: #fdfdfd;
+            --ink: #181818;
+            --cut: clamp(40px, 7vw, 110px); /* height of the oblique separation */
+            --nav-h: 64px;
+        }
+        * { box-sizing: border-box; margin: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        a { color: inherit; }
+        h1, h2, h3 { line-height: 1.15; }
+
+        /* ---------- Nav ---------- */
+        nav {
+            position: fixed; inset: 0 0 auto 0; height: var(--nav-h); z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 1.5rem; background: rgba(24,24,24,.88); backdrop-filter: blur(10px);
+            color: var(--paper);
+        }
+        nav .logo { font-weight: 800; text-decoration: none; display: flex; gap: .5rem; align-items: center; }
+        nav .logo i { color: var(--chartreuse); }
+        nav .links { display: flex; gap: 1.25rem; align-items: center; font-size: .9rem; font-weight: 500; }
+        nav .links a { text-decoration: none; opacity: .85; }
+        nav .links a:hover { opacity: 1; color: var(--chartreuse); }
+        nav .links a.cta { background: var(--chartreuse); color: var(--ink); padding: .45rem 1.1rem; border-radius: 999px; font-weight: 700; opacity: 1; }
+        nav .links a.cta:hover { color: var(--ink); filter: brightness(1.08); }
+        @media (max-width: 760px) { nav .links a:not(.cta) { display: none; } }
+
+        /* ---------- Hero ---------- */
+        #hero {
+            position: relative; z-index: 1;
+            min-height: 100vh; padding: calc(var(--nav-h) + 5rem) 1.5rem calc(var(--cut) + 3rem);
+            display: flex; align-items: center; background: var(--paper);
+        }
+        .hero-in { max-width: 1100px; margin: 0 auto; width: 100%; }
+        .tag { display: inline-block; font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: .35rem .9rem; border: 2px solid var(--olive); color: var(--olive); margin-bottom: 1.5rem; }
+        #hero h1 { font-size: clamp(2.4rem, 6vw, 4.6rem); font-weight: 800; color: var(--olive); max-width: 15ch; margin-bottom: 1.5rem; }
+        #hero h1 em { font-style: normal; background: var(--chartreuse); color: var(--ink); padding: 0 .2em; }
+        #hero p { font-size: 1.2rem; max-width: 46ch; margin-bottom: 2rem; color: #3a3a3a; }
+
+        .btn { display: inline-flex; align-items: center; gap: .6rem; padding: .85rem 1.8rem; font-weight: 700; text-decoration: none; border: 2px solid var(--ink); background: var(--ink); color: var(--paper); transition: transform .15s, background .15s, color .15s; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn.ghost { background: transparent; color: inherit; border-color: currentColor; }
+
+        /* ---------- Sections: oblique separations ---------- */
+        .sect {
+            position: relative;
+            margin-top: calc(var(--cut) * -1);
+            padding: calc(var(--cut) + 4.5rem) 1.5rem calc(var(--cut) + 4.5rem);
+            background: var(--bg); color: var(--fg);
+            clip-path: polygon(0 var(--cut), 100% 0, 100% calc(100% - var(--cut)), 0 100%);
+        }
+        #about       { --bg: var(--olive);      --fg: var(--paper); z-index: 2; }
+        #skills      { --bg: var(--chartreuse); --fg: var(--ink);   z-index: 3; }
+        #expertise   { --bg: var(--grey);       --fg: var(--ink);   z-index: 4; }
+        #partnership { --bg: var(--brown);      --fg: var(--paper); z-index: 5; }
+        #contact     { --bg: var(--blush);      --fg: var(--ink);   z-index: 6; }
+
+        /* Fixed background layers: clipped by their section, so they vanish as the next section slides over */
+        .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+        #dna-canvas, #dna-canvas canvas { width: 100%; height: 100%; display: block; }
+        .bg-layer video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .bg-layer .tint { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(40,26,19,.75), rgba(40,26,19,.25)); }
+
+        /* ---------- Frame ---------- */
+        .frame {
+            position: relative; z-index: 1;
+            max-width: 1100px; margin: 0 auto; padding: clamp(1.5rem, 4vw, 3rem);
+            border: 3px solid var(--fg); background: var(--panel);
+            box-shadow: 10px 10px 0 var(--shadow);
+        }
+        #about       .frame { --panel: rgba(83,81,52,.78);   --shadow: rgba(24,24,24,.45); max-width: 640px; margin-left: max(0px, calc((100% - 1100px) / 2)); backdrop-filter: blur(6px); }
+        #skills      .frame { --panel: rgba(253,253,253,.55); --shadow: var(--olive); }
+        #expertise   .frame { --panel: var(--paper);          --shadow: var(--ink); }
+        #partnership .frame { --panel: rgba(40,26,19,.62);    --shadow: rgba(24,24,24,.5); max-width: 760px; margin-left: max(0px, calc((100% - 1100px) / 2)); backdrop-filter: blur(6px); }
+        #contact     .frame { --panel: var(--paper);          --shadow: var(--brown); max-width: 760px; text-align: center; }
+        @media (max-width: 900px) { #about .frame, #partnership .frame { margin-left: auto; } }
+
+        .kicker { font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; opacity: .8; margin-bottom: .5rem; }
+        .frame h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 1rem; }
+        .frame .lead { font-size: 1.1rem; margin-bottom: 2rem; max-width: 60ch; }
+        #contact .lead { margin-inline: auto; }
+
+        .grid { display: grid; gap: 1.25rem; }
+        .g3 { grid-template-columns: 1fr; }
+        .g4 { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+        .g2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+
+        .card { border: 2px solid currentColor; padding: 1.25rem; background: rgba(255,255,255,.08); }
+        #skills .card, #expertise .card { background: var(--paper); border-color: var(--ink); }
+        #skills .card:hover { background: var(--ink); color: var(--paper); }
+        .card i.ic { font-size: 1.4rem; margin-bottom: .75rem; display: block; color: var(--chartreuse); }
+        #skills .card i.ic, #expertise .card i.ic { color: var(--olive); }
+        #skills .card:hover i.ic { color: var(--chartreuse); }
+        .card h3 { font-size: 1.05rem; margin-bottom: .4rem; }
+        .card p { font-size: .92rem; opacity: .9; }
+        .card ul { list-style: none; padding: 0; margin-top: .9rem; font-size: .9rem; }
+        .card li { padding-left: 1.4rem; position: relative; margin-bottom: .35rem; }
+        .card li::before { content: "→"; position: absolute; left: 0; color: var(--olive); font-weight: 700; }
+        #expertise .card h3 { font-size: 1.25rem; }
+        #expertise .card .sub { color: var(--olive); font-weight: 700; margin-bottom: .75rem; }
+
+        #partnership .badge { display: inline-block; background: var(--chartreuse); color: var(--ink); font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: .3rem .8rem; margin-bottom: 1rem; }
+        #partnership .frame p { margin-bottom: 1rem; }
+        #partnership .btn { background: var(--paper); color: var(--ink); border-color: var(--paper); margin-top: .5rem; }
+        #partnership .btn:hover { background: var(--chartreuse); border-color: var(--chartreuse); }
+
+        #contact .btn { background: var(--olive); border-color: var(--olive); }
+        #contact .btn:hover { background: var(--ink); border-color: var(--ink); }
+
+        /* ---------- Footer ---------- */
+        footer {
+            position: relative; z-index: 1; margin-top: calc(var(--cut) * -1);
+            padding: calc(var(--cut) + 2.5rem) 1.5rem 2.5rem; background: var(--ink); color: #b5b5b5; font-size: .9rem;
+        }
+        footer .in { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        footer a:hover { color: var(--chartreuse); }
+        footer i { font-size: 1.3rem; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="#hero" class="logo"><i class="fa-solid fa-dna"></i> Brice Roux Formations</a>
+        <div class="links">
+            <a href="#about">À propos</a>
+            <a href="#skills">Compétences</a>
+            <a href="#expertise">Expertises</a>
+            <a href="#partnership">Projet 2027</a>
+            <a href="#contact" class="cta">Contact</a>
+        </div>
+    </nav>
+
+    <header id="hero">
+        <div class="hero-in">
+            <span class="tag">PhD • Formateur & Consultant Indépendant</span>
+            <h1>Formations de pointe en <em>Biologie Moléculaire</em></h1>
+            <p>Accompagnement opérationnel et formations sur-mesure pour laboratoires de recherche, R&D, plateformes technologiques, LBM et CROs. Ancrées dans la réalité de terrain.</p>
+            <div style="display:flex;gap:1rem;flex-wrap:wrap">
+                <a href="#contact" class="btn"><i class="fa-solid fa-envelope"></i> Discuter de votre projet</a>
+                <a href="https://www.linkedin.com/in/brice-roux-formations/" target="_blank" rel="noopener" class="btn ghost" style="color:var(--olive)"><i class="fa-brands fa-linkedin"></i> Profil LinkedIn</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- About: DNA background -->
+    <section id="about" class="sect">
+        <div class="bg-layer"><div id="dna-canvas"></div></div>
+        <div class="frame">
+            <h2>À propos de Brice Roux</h2>
+            <p class="lead">Docteur (PhD) en biologie moléculaire et génétique diplômé de l'Université Paul Sabatier (Toulouse III). Formateur et consultant indépendant dédié à la transmission des meilleures pratiques expérimentales et analytiques.</p>
+            <div class="grid g3">
+                <div class="card"><i class="ic fa-solid fa-graduation-cap"></i><h3>Rigueur Scientifique</h3><p>Doctorat et solide background de recherche académique et appliquée en biologie moléculaire.</p></div>
+                <div class="card"><i class="ic fa-solid fa-flask-vial"></i><h3>Réalité de Terrain</h3><p>Modules opérationnels axés sur la manipulation, l'optimisation des réactifs et la résolution d'anomalies.</p></div>
+                <div class="card"><i class="ic fa-solid fa-sliders"></i><h3>Sur-Mesure</h3><p>Programmes flexibles conçus pour répondre aux contraintes et équipements spécifiques de chaque structure.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="skills" class="sect">
+        <div class="frame">
+            <div class="kicker">Savoir-faire & Techniques</div>
+            <h2>Compétences Clés</h2>
+            <p class="lead">Ensemble des compétences scientifiques, analytiques et pédagogiques mobilisées lors des formations et missions de conseil.</p>
+            <div class="grid g4">
+                <div class="card"><i class="ic fa-solid fa-dna"></i><h3>PCR Digitale (dPCR / ddPCR)</h3><p>Quantification absolue sans courbe étalon, partitionnement, détection de variants rares et biomarqueurs.</p></div>
+                <div class="card"><i class="ic fa-solid fa-chart-line"></i><h3>PCR Quantitative (qPCR / RT-qPCR)</h3><p>Analyse d'expression génique, sélection de gènes de référence, validation d'efficacité des amorces et sondes.</p></div>
+                <div class="card"><i class="ic fa-solid fa-code-branch"></i><h3>Séquençage & Génomique</h3><p>Préparation de banques NGS, séquençage Sanger, contrôle qualité des acides nucléiques (ADN / ARN).</p></div>
+                <div class="card"><i class="ic fa-solid fa-vial-circle-check"></i><h3>Clonage & Génie Génétique</h3><p>Stratégies d'assemblage moléculaire, mutagenèse dirigée, vecteurs d'expression et recombinaison.</p></div>
+                <div class="card"><i class="ic fa-solid fa-shield-halved"></i><h3>Validation de Méthodes</h3><p>Assurance qualité, robustesse analytique, respect des normes ISO / BPL et conformité réglementaire.</p></div>
+                <div class="card"><i class="ic fa-solid fa-wrench"></i><h3>Troubleshooting Laboratoire</h3><p>Identification des biais expérimentaux, résolution des faux-positifs / faux-négatifs et inhibition PCR.</p></div>
+                <div class="card"><i class="ic fa-solid fa-chalkboard-user"></i><h3>Ingénierie Pédagogique</h3><p>Création de supports didactiques, animation de sessions théoriques et ateliers pratiques intensifs.</p></div>
+                <div class="card"><i class="ic fa-solid fa-users-gear"></i><h3>Accompagnement d'Équipes</h3><p>Montée en compétences des chercheurs, techniciens et encadrants de plateformes et LBM.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="expertise" class="sect">
+        <div class="frame">
+            <h2>Domaines d'Intervention</h2>
+            <p class="lead">Des prestations complètes de la formation continue au conseil technique spécialisé.</p>
+            <div class="grid g2">
+                <div class="card">
+                    <i class="ic fa-solid fa-microchip"></i>
+                    <h3>Formations PCR Digitale (dPCR)</h3>
+                    <div class="sub">Théorie & Pratique</div>
+                    <p>Maîtrise complète de la dPCR : design d'amorces et sondes, optimisation du partitionnement, analyse statistique Poisson et quantification absolue d'acides nucléiques.</p>
+                    <ul>
+                        <li>Interprétation des profils 1D et 2D de fluorescence</li>
+                        <li>Contrôles de qualité et seuillage (thresholding)</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <i class="ic fa-solid fa-handshake-angle"></i>
+                    <h3>Conseil & Audit de Protocoles</h3>
+                    <div class="sub">Pour Laboratoires & Plateformes</div>
+                    <p>Audit des flux de travail en biologie moléculaire, optimisation des rendements d'extraction et réduction des coûts de réactifs en routine.</p>
+                    <ul>
+                        <li>Diagnostics des causes d'échec expérimental</li>
+                        <li>Mise en place de bonnes pratiques de laboratoire</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Partnership: video background -->
+    <section id="partnership" class="sect">
+        <div class="bg-layer">
+            <video id="partner-video" src="assets/partnership.mp4" muted playsinline preload="auto"></video>
+            <div class="tint"></div>
+        </div>
+        <div class="frame">
+            <span class="badge">Appel à Partenariat 2027</span>
+            <h2>Journées de Travaux Pratiques — PCR Digitale</h2>
+            <p>Recherche de centres, plateformes, laboratoires ou prestataires en <strong>région parisienne</strong> susceptibles d'accueillir des journées de travaux pratiques consacrées à la <strong>PCR digitale</strong> en 2027, dans le cadre de formations continues en biologie moléculaire.</p>
+            <p style="font-size:.9rem;opacity:.85">Prestation comprenant la mise à disposition de locaux, d'instruments et de réactifs (modalités sur-mesure).</p>
+            <a href="#contact" class="btn">Proposer un partenariat</a>
+        </div>
+    </section>
+
+    <section id="contact" class="sect">
+        <div class="frame">
+            <h2>Contactez Brice Roux</h2>
+            <p class="lead">Vous pilotez un laboratoire, une plateforme technologique ou une équipe R&D ? Échangeons sur vos besoins.</p>
+            <a href="https://www.linkedin.com/in/brice-roux-formations/" target="_blank" rel="noopener" class="btn"><i class="fa-brands fa-linkedin"></i> Contacter sur LinkedIn</a>
+        </div>
+    </section>
+
+    <footer id="footer">
+        <div class="in">
+            <p>© 2026 Brice Roux Formations. Tous droits réservés.</p>
+            <a href="https://www.linkedin.com/in/brice-roux-formations/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+        </div>
+    </footer>
+
+    <script>
+    (function () {
+        /* ---- Partnership video: scroll position drives currentTime ---- */
+        const video = document.getElementById('partner-video');
+        const partner = document.getElementById('partnership');
+        let vTarget = 0, vSeeking = false, vRaf = 0;
+        const vSeek = () => { vSeeking = true; video.currentTime = vTarget; };
+        const vUpdate = () => {
+            vRaf = 0;
+            if (!video.duration) return;
+            const r = partner.getBoundingClientRect();
+            // 0 when the section's top enters the viewport, 1 when its bottom leaves it
+            const p = Math.min(Math.max((innerHeight - r.top) / (r.height + innerHeight), 0), 1);
+            vTarget = p * video.duration;
+            if (!vSeeking) vSeek();
+        };
+        video.addEventListener('loadedmetadata', vUpdate);
+        video.addEventListener('seeked', () => { vSeeking = false; if (Math.abs(video.currentTime - vTarget) > 0.05) vSeek(); });
+        const onScroll = () => { if (!vRaf) vRaf = requestAnimationFrame(vUpdate); };
+        addEventListener('scroll', onScroll, { passive: true });
+        addEventListener('resize', onScroll, { passive: true });
+
+        /* ---- About DNA: render only while its section is on screen ---- */
+        const host = document.getElementById('dna-canvas');
+        let visible = false;
+        new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0 })
+            .observe(document.getElementById('about'));
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 100);
+        camera.position.set(0, 0, 10);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+        renderer.setSize(innerWidth, innerHeight);
+        host.appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 3));
+        const key = new THREE.DirectionalLight(0xffffff, 4); key.position.set(10, 10, 10); scene.add(key);
+        const fill = new THREE.DirectionalLight(0xaad31d, 3); fill.position.set(-10, -10, -10); scene.add(fill);
+
+        const pivot = new THREE.Group();
+        scene.add(pivot);
+
+        const place = () => pivot.position.set(innerWidth < 900 ? 0 : 3, 0, 0);
+
+        const onModel = (gltf) => {
+            const m = gltf.scene;
+            const box = new THREE.Box3().setFromObject(m);
+            const c = box.getCenter(new THREE.Vector3());
+            const s = box.getSize(new THREE.Vector3());
+            m.position.set(-c.x, -c.y, -c.z);
+            pivot.add(m);
+            pivot.scale.setScalar(5.2 / Math.max(s.x, s.y, s.z));
+            place();
+        };
+        const onErr = (err) => console.error('DNA load failed:', err);
+        const loader = new THREE.GLTFLoader();
+        if (location.protocol === 'file:') {
+            // fetch/XHR is blocked on file:// -> use the embedded base64 bundle
+            const sc = document.createElement('script');
+            sc.src = 'assets/dna_data.js';
+            sc.onload = () => {
+                const bin = atob(window.DNA_GLB_BASE64);
+                const bytes = Uint8Array.from(bin, (ch) => ch.charCodeAt(0));
+                loader.parse(bytes.buffer, '', onModel, onErr);
+            };
+            sc.onerror = onErr;
+            document.head.appendChild(sc);
+        } else {
+            loader.load('assets/dna.glb', onModel, undefined, onErr);
+        }
+
+        addEventListener('resize', () => {
+            camera.aspect = innerWidth / innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(innerWidth, innerHeight);
+            place();
+        }, { passive: true });
+
+        let last = performance.now();
+        (function loop(now) {
+            requestAnimationFrame(loop);
+            const dt = Math.min((now - last) / 1000, 0.1); last = now;
+            if (!visible) return;
+            pivot.rotation.y += dt * 0.4;
+            pivot.rotation.x = scrollY * 0.0018;
+            renderer.render(scene, camera);
+        })(last);
+    })();
+    </script>
+</body>
+</html>

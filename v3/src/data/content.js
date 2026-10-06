@@ -2,7 +2,7 @@ export const nav = [
   { href: "#about", label: "À propos" },
   { href: "#skills", label: "Compétences" },
   { href: "#expertise", label: "Expertises" },
-  { href: "#actualites", label: "Projet 2027" },
+  { href: "#partnership", label: "Projet 2027" },
 ];
 
 export const highlights = [

@@ -22,7 +22,7 @@ export default function Nav() {
     >
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <a
-          href="#top"
+          href="#hero"
           className="flex items-center gap-3 font-display font-semibold text-lg text-white"
         >
           <span className="w-10 h-10 rounded-xl bg-lime-400 text-ink-950 flex items-center justify-center shadow-[0_0_25px_-5px_theme(colors.lime.400)]">

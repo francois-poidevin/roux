@@ -2,7 +2,7 @@ import Reveal from "./Reveal";
 
 export default function Partnership() {
   return (
-    <section id="actualites" className="relative py-28 px-6">
+    <section id="partnership" className="relative py-28 px-6">
       <div className="max-w-6xl mx-auto">
         <Reveal>
           <div className="relative overflow-hidden rounded-[2.5rem] bg-lime-400 text-ink-950 p-10 md:p-16">
