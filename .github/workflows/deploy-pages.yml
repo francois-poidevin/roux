@@ -33,15 +33,17 @@ jobs:
           npm run build
 
       # Assemble the whole Pages site: root (index.html + assets/) and the
-      # static v1/v2 folders are published as-is; v3 is replaced by its
-      # built dist/ output. One artifact = one deploy = all four reachable
-      # from the same Pages site (root, /v1, /v2, /v3).
+      # static v1/v2/v4/v5 folders are published as-is; v3 is replaced by its
+      # built dist/ output. One artifact = one deploy = all reachable
+      # from the same Pages site (root, /v1 ... /v5).
       - name: Assemble site
         run: |
           mkdir -p _site
           cp -r index.html assets README.md _site/
           cp -r v1 _site/v1
           cp -r v2 _site/v2
+          cp -r v4 _site/v4
+          cp -r v5 _site/v5
           cp -r v3/dist _site/v3
 
       - uses: actions/upload-pages-artifact@v3
